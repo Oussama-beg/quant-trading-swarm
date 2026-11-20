@@ -1,7 +1,6 @@
 pandas
 numpy
+matplotlib
 scikit-learn
 tensorflow
-streamlit
-plotly
 joblib
