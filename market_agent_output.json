@@ -1,0 +1,202 @@
+{
+  "AAPL": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4428,
+    "RSI_14": 46.0,
+    "MACD_Norm": -0.04749,
+    "Volatility_7d": 0.04844,
+    "Volatility_21d": 0.06304
+  },
+  "MSFT": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4757,
+    "RSI_14": 51.35,
+    "MACD_Norm": -0.02175,
+    "Volatility_7d": 0.05187,
+    "Volatility_21d": 0.06954
+  },
+  "GOOGL": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4472,
+    "RSI_14": 45.79,
+    "MACD_Norm": -0.05355,
+    "Volatility_7d": 0.04323,
+    "Volatility_21d": 0.05384
+  },
+  "AMZN": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4666,
+    "RSI_14": 53.07,
+    "MACD_Norm": -0.00044,
+    "Volatility_7d": 0.02884,
+    "Volatility_21d": 0.04144
+  },
+  "NVDA": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4713,
+    "RSI_14": 54.99,
+    "MACD_Norm": -0.00315,
+    "Volatility_7d": 0.06582,
+    "Volatility_21d": 0.08337
+  },
+  "NFLX": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.479,
+    "RSI_14": 56.69,
+    "MACD_Norm": 0.00374,
+    "Volatility_7d": 0.04439,
+    "Volatility_21d": 0.05482
+  },
+  "INTC": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4789,
+    "RSI_14": 50.19,
+    "MACD_Norm": -0.02665,
+    "Volatility_7d": 0.0581,
+    "Volatility_21d": 0.08564
+  },
+  "CSCO": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4656,
+    "RSI_14": 49.52,
+    "MACD_Norm": -0.02449,
+    "Volatility_7d": 0.06184,
+    "Volatility_21d": 0.066
+  },
+  "ORCL": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4804,
+    "RSI_14": 49.62,
+    "MACD_Norm": -0.01125,
+    "Volatility_7d": 0.05838,
+    "Volatility_21d": 0.0756
+  },
+  "IBM": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4499,
+    "RSI_14": 45.47,
+    "MACD_Norm": -0.06159,
+    "Volatility_7d": 0.05441,
+    "Volatility_21d": 0.06059
+  },
+  "JPM": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4547,
+    "RSI_14": 42.02,
+    "MACD_Norm": -0.08982,
+    "Volatility_7d": 0.0698,
+    "Volatility_21d": 0.0833
+  },
+  "BAC": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4494,
+    "RSI_14": 41.16,
+    "MACD_Norm": -0.10511,
+    "Volatility_7d": 0.08359,
+    "Volatility_21d": 0.08847
+  },
+  "V": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.459,
+    "RSI_14": 45.71,
+    "MACD_Norm": -0.04851,
+    "Volatility_7d": 0.07134,
+    "Volatility_21d": 0.06681
+  },
+  "GS": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4427,
+    "RSI_14": 41.25,
+    "MACD_Norm": -0.09596,
+    "Volatility_7d": 0.06505,
+    "Volatility_21d": 0.08255
+  },
+  "JNJ": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4639,
+    "RSI_14": 49.21,
+    "MACD_Norm": -0.03302,
+    "Volatility_7d": 0.05782,
+    "Volatility_21d": 0.05303
+  },
+  "PFE": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4671,
+    "RSI_14": 50.0,
+    "MACD_Norm": -0.03234,
+    "Volatility_7d": 0.0376,
+    "Volatility_21d": 0.05038
+  },
+  "WMT": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4815,
+    "RSI_14": 49.29,
+    "MACD_Norm": -0.00664,
+    "Volatility_7d": 0.02964,
+    "Volatility_21d": 0.04936
+  },
+  "KO": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4548,
+    "RSI_14": 42.37,
+    "MACD_Norm": -0.0774,
+    "Volatility_7d": 0.04242,
+    "Volatility_21d": 0.05139
+  },
+  "DIS": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4737,
+    "RSI_14": 42.58,
+    "MACD_Norm": -0.07488,
+    "Volatility_7d": 0.07142,
+    "Volatility_21d": 0.07212
+  },
+  "ADBE": {
+    "agent": "market_analysis",
+    "date": "2020-03-31",
+    "predicted_direction": "DOWN",
+    "probability_up": 0.4753,
+    "RSI_14": 48.75,
+    "MACD_Norm": -0.02702,
+    "Volatility_7d": 0.03741,
+    "Volatility_21d": 0.0744
+  }
+}
