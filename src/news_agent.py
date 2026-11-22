@@ -5,7 +5,7 @@ import pandas as pd
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 
-MODEL_PATH = "models/distilbert_news_sentiment"
+MODEL_PATH = "models/agent2"
 
 print("Loading DistilBERT...")
 
@@ -93,37 +93,35 @@ def analyze_dataset():
 
     print("\nLoading financial news dataset...")
 
-    df = pd.read_csv("data/cleaned_news.csv")
+    df = pd.read_csv("data/cleaned_news.csv", encoding="latin-1")
 
-    df = df.dropna(subset=["news", "clean_news"])
-    df["news"] = df["news"].astype(str).str.strip()
-    df["clean_news"] = df["clean_news"].astype(str).str.strip()
+    # Handle headerless 2-column Kaggle file (sentiment, headline) vs named columns
+    if "clean_news" in df.columns:
+        text_col = "clean_news"
+    elif "news" in df.columns:
+        text_col = "news"
+    elif df.shape[1] == 2:
+        df = pd.read_csv("data/cleaned_news.csv", encoding="latin-1", header=None, names=["sentiment", "clean_news"])
+        text_col = "clean_news"
+    else:
+        # Fallback: pick the longest string column as the headline text
+        text_col = max(df.columns, key=lambda c: df[c].astype(str).str.len().mean())
 
-    df = df[
-        (df["news"] != "") &
-        (df["clean_news"] != "")
-    ].copy()
+    df = df.dropna(subset=[text_col]).copy()
+    df["clean_news"] = df[text_col].astype(str).str.strip()
+    df = df[df["clean_news"] != ""].reset_index(drop=True)
 
     headlines = df["clean_news"].tolist()
 
     print("Total headlines:", len(headlines))
 
-   
     predictions = analyze_headlines(headlines)
-
     predictions_df = pd.DataFrame(predictions)
 
-    
-    df = df.reset_index(drop=True)
-
-    df["predicted_sentiment"] = predictions_df[
-        "predicted_sentiment"
-    ]
-
+    df["predicted_sentiment"] = predictions_df["predicted_sentiment"]
     df["confidence"] = predictions_df["confidence"]
     df["score"] = predictions_df["score"]
 
-    
     sentiment_score = df["score"].mean()
 
     if sentiment_score > 0.2:
@@ -133,29 +131,19 @@ def analyze_dataset():
     else:
         signal = "HOLD"
 
-    
     sentiment_counts = df["predicted_sentiment"].value_counts()
 
-    
     output_path = "data/analyzed_news.csv"
+    df.to_csv(output_path, index=False, encoding="utf-8")
 
-    df.to_csv(output_path, index=False)
-
-    
     print("\n========== NEWS ANALYSIS SUMMARY ==========")
-
     print("Total headlines:", len(df))
-
     print("\nSentiment distribution:")
     print(sentiment_counts)
-
     print("\nAverage sentiment score:", round(sentiment_score, 4))
     print("Overall signal:", signal)
-
     print("\nResults saved to:", output_path)
-
-
-
+  
 
 if __name__ == "__main__":
 
