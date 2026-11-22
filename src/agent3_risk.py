@@ -9,7 +9,7 @@ from utils import TICKERS, SEQ_LEN, RISK_COLS, load_and_split_stock
 
 
 def main():
-    os.makedirs("models", exist_ok=True)
+    os.makedirs("models/agent3", exist_ok=True)
     scalers = {}
     X_tr_list, y_tr_list, X_va_list, y_va_list, X_te_list, y_te_list = [], [], [], [], [], []
 
@@ -50,7 +50,7 @@ def main():
     for feat, weight in zip(RISK_COLS, risk_model.coef_[0]):
         print(f"Learned Weight -> {feat}: {weight:+.4f}")
 
-    joblib.dump({"model": risk_model, "scalers": scalers}, "models/risk_logreg.pkl")
+    joblib.dump({"model": risk_model, "scalers": scalers}, "models/agent3/risk_logreg.pkl")
     print("Saved models/risk_logreg.pkl")
 
 

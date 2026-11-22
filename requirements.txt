@@ -4,3 +4,8 @@ matplotlib
 scikit-learn
 tensorflow
 joblib
+torch
+transformers
+streamlit
+plotly
+yfinance
