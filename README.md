@@ -8,16 +8,22 @@ Multi-agent quantitative trading decision-support system (**Project 2 — Data M
 | :--- | :--- | :--- | :--- |
 | **Agent 1 (Market)** | Pooled LSTM (`models/agent1/lstm_market_agent.keras`) | 20-day sequences of `Return`, `Close_MA5_Ratio`, `Close_MA20_Ratio`, `MA5_MA20_Ratio`, `Daily_Spread`, `RSI_14`, `MACD_Norm`, `MACD_Hist_Norm` | Predicts next-day upward price probability $P(\text{Up})$ (`UP` / `DOWN`) |
 | **Agent 2 (News Sentiment)** | Fine-tuned DistilBERT (`models/agent2/`) | Financial news headlines (WordPiece max length 64) | Classifies headlines (`positive`, `neutral`, `negative`) and maps them to a continuous polarity score $\in [-1.0, +1.0]$ |
-| **Agent 3 (Signal Combiner)** | Balanced Logistic Regression (`C = 1.0`, `class_weight="balanced"`) | Date-aligned Agent 1 `prob_up` and Agent 2 daily average `sentiment_score` | Fuses technical and sentiment signals into a calibrated probability $P(\text{Up})$ (`UP` when $\ge \text{threshold}$, default `0.50`) |
+| **Agent 3 (Signal Combiner)** | Balanced Logistic Regression (`models/agent3/combiner_lr.pkl`, `C = 1.0`, `class_weight="balanced"`) | Date-aligned Agent 1 `prob_up` and Agent 2 daily average `sentiment_score` | Fuses technical and sentiment signals into a calibrated probability $P(\text{Up})$ (`UP` when $\ge \text{threshold}$, default `0.50`) |
 | **Interactive Dashboard** | Streamlit Decision Engine (`src/app.py`) | Live `yfinance` OHLCV, deduplicated Yahoo Finance & Google News RSS headlines, or custom CSV uploads | Runs all 3 agents in real time with an adjustable **UP Decision Threshold** slider (`0.10`–`0.90`) and interactive Plotly charts |
 
 ---
 
-## Datasets
+## Datasets & Subsets Used
 
-1. **[Jackson Crow Stock Market Dataset (Kaggle)](https://www.kaggle.com/datasets/jacksoncrow/stock-market-dataset):** Historical daily OHLCV records across 20 US equities (`AAPL`, `MSFT`, `GOOGL`, `AMZN`, `NVDA`, `NFLX`, `INTC`, `CSCO`, `ORCL`, `IBM`, `JPM`, `BAC`, `V`, `GS`, `JNJ`, `PFE`, `WMT`, `KO`, `DIS`, `ADBE`) used to compute the 8 technical indicators and next-day directional targets.
-2. **[Sentiment Analysis for Financial News (Kaggle)](https://www.kaggle.com/datasets/ankurzing/sentiment-analysis-for-financial-news):** Labeled financial news headlines used to fine-tune the 3-class DistilBERT sentiment classifier.
-3. **[Daily Financial News for 6000+ Stocks (Kaggle)](https://www.kaggle.com/datasets/miguelaenlle/massive-stock-news-analysis-db-for-nlpbacktests):** Date-stamped stock headlines indexed by ticker and publication date, aligned on `(ticker, date)` with Agent 1 outputs to construct the `8,682`-row chronological dataset (`70/15/15` split: `6,077` train / `1,302` validation / `1,303` test) for training and evaluating Agent 3.
+1. **[Jackson Crow Stock Market Dataset (Kaggle)](https://www.kaggle.com/datasets/jacksoncrow/stock-market-dataset):**
+   - **Subset used:** Only the `stocks/` folder for **20 high-liquidity US equities** (`AAPL`, `MSFT`, `GOOGL`, `AMZN`, `NVDA`, `NFLX`, `INTC`, `CSCO`, `ORCL`, `IBM`, `JPM`, `BAC`, `V`, `GS`, `JNJ`, `PFE`, `WMT`, `KO`, `DIS`, `ADBE`), excluding ETFs and remaining tickers.
+   - **Columns & split:** Daily `Date`, `Open`, `High`, `Low`, `Close`, and `Volume` across each ticker's full history, converted into 8 normalized technical indicators and 20-day rolling windows (`129,333` train / `27,413` validation / `27,432` test sequences using a per-ticker chronological `70/15/15` split).
+2. **[Sentiment Analysis for Financial News (Kaggle)](https://www.kaggle.com/datasets/ankurzing/sentiment-analysis-for-financial-news):**
+   - **Subset used:** The cleaned `all-data.csv` headline corpus (`Sentiment` label + `News Headline` text), deduplicated and formatted into `data/cleaned_news.csv`.
+   - **Columns & split:** Used strictly for fine-tuning Agent 2 (`DistilBERT`) on 3-class sentiment (`positive`, `neutral`, `negative`) with a stratified `70/15/15` split (since this corpus does not include trading dates).
+3. **[Daily Financial News for 6000+ Stocks (Kaggle)](https://www.kaggle.com/datasets/miguelaenlle/massive-stock-news-analysis-db-for-nlpbacktests):**
+   - **Subset used:** Filtered to headlines matching the **20 target tickers** (`stock` column) and overlapping trading dates (`date` column) in the Jackson Crow dataset (`src/step0_match_news.py`).
+   - **Columns & split:** Scored with Agent 2 (`src/step1_score_news.py`), averaged per `(ticker, date)`, and joined with Agent 1 `prob_up` outputs (`src/step2_score_stocks.py`) to form **`8,682` aligned `(ticker, date)` rows**, partitioned chronologically `70/15/15` (`6,077` train / `1,302` validation / `1,303` test) for Agent 3 (`src/step3_train_agent3.py`, `src/eval_metric_logreg.py`).
 
 ---
 
@@ -25,10 +31,9 @@ Multi-agent quantitative trading decision-support system (**Project 2 — Data M
 
 ```text
 QUANTITATIVE-TRADING-SWARM/
-├── data/
-│   ├── stocks/                      # Historical OHLCV CSVs for 20 tickers (Jackson Crow dataset)
-│   ├── cleaned_news.csv             # Labeled financial news headlines dataset
-│   └── dated_stock_news.csv         # Date-stamped ticker headlines for Agent 3 alignment
+├── data/                            # Local datasets (excluded from Git; ~1 GB total)
+│   ├── stocks/                      # Historical OHLCV CSVs for the 20 target tickers
+│   └── cleaned_news.csv             # Labeled financial news headlines for Agent 2
 ├── models/
 │   ├── agent1/
 │   │   ├── lstm_market_agent.keras
@@ -38,12 +43,18 @@ QUANTITATIVE-TRADING-SWARM/
 │   │   ├── model.safetensors          # Hosted externally on Google Drive (see Setup)
 │   │   ├── tokenizer.json
 │   │   └── tokenizer_config.json
-│   └── agent3/                      # Saved Balanced Logistic Regression combiner artifacts
+│   └── agent3/
+│       ├── combiner_lr.pkl
+│       └── metrics.json
 ├── src/
 │   ├── utils.py                     # Unified data loader, 8 technical features, 70/15/15 split & sequence builder
 │   ├── Student1_Market_Agent.ipynb  # Agent 1 Pooled LSTM training & evaluation notebook
 │   ├── news_agent.py                # Agent 2 DistilBERT inference script
-│   ├── eval_metric_logreg.py        # Agent 3 Balanced Logistic Regression training, validation & test evaluation
+│   ├── step0_match_news.py          # Filters & matches dated stock news to the 20 target tickers
+│   ├── step1_score_news.py          # Scores matched dated headlines with Agent 2 into daily sentiment
+│   ├── step2_score_stocks.py        # Generates Agent 1 daily probabilities & aligns on (ticker, date)
+│   ├── step3_train_agent3.py        # Trains Balanced Logistic Regression combiner (combiner_lr.pkl)
+│   ├── eval_metric_logreg.py        # Evaluates Agent 3 across validation, test & signal-magnitude subsets
 │   └── app.py                       # Interactive Streamlit dashboard (live yfinance, Yahoo/Google News RSS, CSV uploads)
 ├── requirements.txt
 └── README.md
@@ -58,8 +69,8 @@ QUANTITATIVE-TRADING-SWARM/
    pip install -r requirements.txt
    ```
 2. **Prepare datasets & model weights:**
-   - Place historical stock CSVs inside `data/stocks/<TICKER>.csv` (`AAPL`, `MSFT`, `GOOGL`, `AMZN`, `NVDA`, `NFLX`, `INTC`, `CSCO`, `ORCL`, `IBM`, `JPM`, `BAC`, `V`, `GS`, `JNJ`, `PFE`, `WMT`, `KO`, `DIS`, `ADBE`).
-   - Place the labeled sentiment headlines CSV and date-stamped stock news CSV inside `data/`.
+   - Place the 20 stock CSVs inside `data/stocks/<TICKER>.csv` (`AAPL`, `MSFT`, `GOOGL`, `AMZN`, `NVDA`, `NFLX`, `INTC`, `CSCO`, `ORCL`, `IBM`, `JPM`, `BAC`, `V`, `GS`, `JNJ`, `PFE`, `WMT`, `KO`, `DIS`, `ADBE`).
+   - Place `cleaned_news.csv` and the dated stock news CSV inside `data/`.
    - Download `model.safetensors` (255 MB) from Google Drive (`https://drive.google.com/file/d/16TCelOauewhTi5pqD2z8cYA-Uqa31Ozg/view?usp=sharing`) and place it at `models/agent2/model.safetensors`.
 
 ---
@@ -72,8 +83,12 @@ QUANTITATIVE-TRADING-SWARM/
   ```bash
   PYTHONPATH=src python src/news_agent.py
   ```
-- **Agent 3 (Balanced Logistic Regression Combiner — Training & Evaluation):**
+- **Agent 3 (Dataset Alignment, Combiner Training & Evaluation):**
   ```bash
+  PYTHONPATH=src python src/step0_match_news.py
+  PYTHONPATH=src python src/step1_score_news.py
+  PYTHONPATH=src python src/step2_score_stocks.py
+  PYTHONPATH=src python src/step3_train_agent3.py
   PYTHONPATH=src python src/eval_metric_logreg.py
   ```
 
