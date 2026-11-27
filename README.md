@@ -19,11 +19,11 @@ Multi-agent quantitative trading decision-support system (**Project 2 — Data M
    - **Subset used:** Only the `stocks/` folder for **20 high-liquidity US equities** (`AAPL`, `MSFT`, `GOOGL`, `AMZN`, `NVDA`, `NFLX`, `INTC`, `CSCO`, `ORCL`, `IBM`, `JPM`, `BAC`, `V`, `GS`, `JNJ`, `PFE`, `WMT`, `KO`, `DIS`, `ADBE`), excluding ETFs and remaining tickers.
    - **Columns & split:** Daily `Date`, `Open`, `High`, `Low`, `Close`, and `Volume` across each ticker's full history, converted into 8 normalized technical indicators and 20-day rolling windows (`129,333` train / `27,413` validation / `27,432` test sequences using a per-ticker chronological `70/15/15` split).
 2. **[Sentiment Analysis for Financial News (Kaggle)](https://www.kaggle.com/datasets/ankurzing/sentiment-analysis-for-financial-news):**
-   - **Subset used:** The cleaned `all-data.csv` headline corpus (`Sentiment` label + `News Headline` text), deduplicated and formatted into `data/cleaned_news.csv`.
+   - **Subset used:** The `all-data.csv` headline corpus (`Sentiment` label + `News Headline` text), cleaned and stored in `data/cleaned_news.csv`.
    - **Columns & split:** Used strictly for fine-tuning Agent 2 (`DistilBERT`) on 3-class sentiment (`positive`, `neutral`, `negative`) with a stratified `70/15/15` split (since this corpus does not include trading dates).
 3. **[Daily Financial News for 6000+ Stocks (Kaggle)](https://www.kaggle.com/datasets/miguelaenlle/massive-stock-news-analysis-db-for-nlpbacktests):**
-   - **Subset used:** Filtered to headlines matching the **20 target tickers** (`stock` column) and overlapping trading dates (`date` column) in the Jackson Crow dataset (`src/step0_match_news.py`).
-   - **Columns & split:** Scored with Agent 2 (`src/step1_score_news.py`), averaged per `(ticker, date)`, and joined with Agent 1 `prob_up` outputs (`src/step2_score_stocks.py`) to form **`8,682` aligned `(ticker, date)` rows**, partitioned chronologically `70/15/15` (`6,077` train / `1,302` validation / `1,303` test) for Agent 3 (`src/step3_train_agent3.py`, `src/eval_metric_logreg.py`).
+   - **Subset used:** Specifically the **`analyst_ratings_processed.csv`** file from the multi-file Kaggle archive (ignoring the raw/unprocessed splits), filtered to the **20 target tickers** (`stock` column) and overlapping trading dates (`date` column) in `src/step0_match_news.py`. *(Note: `analyst_ratings_processed.csv` is ~151 MB and excluded from Git, while the resulting `matched_headlines.csv` and aligned outputs are included in `data/`.)*
+   - **Columns & split:** Scored with Agent 2 (`src/step1_score_news.py` → `data/daily_news_scores.csv`), joined with Agent 1 `prob_up` outputs (`src/step2_score_stocks.py` → `data/daily_stock_scores.csv` & `data/aligned_agent_outputs.csv`) to form **`8,682` aligned `(ticker, date)` rows**, partitioned chronologically `70/15/15` (`6,077` train / `1,302` validation / `1,303` test) for Agent 3 (`src/step3_train_agent3.py`, `src/eval_metric_logreg.py`).
 
 ---
 
@@ -31,31 +31,36 @@ Multi-agent quantitative trading decision-support system (**Project 2 — Data M
 
 ```text
 QUANTITATIVE-TRADING-SWARM/
-├── data/                            # Local datasets (excluded from Git; ~1 GB total)
-│   ├── stocks/                      # Historical OHLCV CSVs for the 20 target tickers
-│   └── cleaned_news.csv             # Labeled financial news headlines for Agent 2
+├── data/
+│   ├── stocks/                       # Historical OHLCV CSVs for the 20 target tickers
+│   ├── analyst_ratings_processed.csv # Raw Kaggle dated headlines file (151 MB; download from Kaggle to re-run step 0)
+│   ├── cleaned_news.csv              # Cleaned labeled financial news headlines for Agent 2
+│   ├── matched_headlines.csv         # Filtered headlines matching the 20 tickers & trading dates
+│   ├── daily_news_scores.csv         # Daily average Agent 2 sentiment scores per (ticker, date)
+│   ├── daily_stock_scores.csv        # Daily Agent 1 upward probabilities per (ticker, date)
+│   └── aligned_agent_outputs.csv     # Final 8,682 date-aligned rows used to train/evaluate Agent 3
 ├── models/
 │   ├── agent1/
 │   │   ├── lstm_market_agent.keras
 │   │   └── scaler_market.pkl
 │   ├── agent2/
 │   │   ├── config.json
-│   │   ├── model.safetensors          # Hosted externally on Google Drive (see Setup)
+│   │   ├── model.safetensors           # Hosted externally on Google Drive (see Setup)
 │   │   ├── tokenizer.json
 │   │   └── tokenizer_config.json
 │   └── agent3/
 │       ├── combiner_lr.pkl
 │       └── metrics.json
 ├── src/
-│   ├── utils.py                     # Unified data loader, 8 technical features, 70/15/15 split & sequence builder
-│   ├── Student1_Market_Agent.ipynb  # Agent 1 Pooled LSTM training & evaluation notebook
-│   ├── news_agent.py                # Agent 2 DistilBERT inference script
-│   ├── step0_match_news.py          # Filters & matches dated stock news to the 20 target tickers
-│   ├── step1_score_news.py          # Scores matched dated headlines with Agent 2 into daily sentiment
-│   ├── step2_score_stocks.py        # Generates Agent 1 daily probabilities & aligns on (ticker, date)
-│   ├── step3_train_agent3.py        # Trains Balanced Logistic Regression combiner (combiner_lr.pkl)
-│   ├── eval_metric_logreg.py        # Evaluates Agent 3 across validation, test & signal-magnitude subsets
-│   └── app.py                       # Interactive Streamlit dashboard (live yfinance, Yahoo/Google News RSS, CSV uploads)
+│   ├── utils.py                      # Unified data loader, 8 technical features, 70/15/15 split & sequence builder
+│   ├── Student1_Market_Agent.ipynb   # Agent 1 Pooled LSTM training & evaluation notebook
+│   ├── news_agent.py                 # Agent 2 DistilBERT inference script
+│   ├── step0_match_news.py           # Filters analyst_ratings_processed.csv to the 20 target tickers
+│   ├── step1_score_news.py           # Scores matched headlines with Agent 2 into daily sentiment
+│   ├── step2_score_stocks.py         # Generates Agent 1 daily probabilities & aligns on (ticker, date)
+│   ├── step3_train_agent3.py         # Trains Balanced Logistic Regression combiner (combiner_lr.pkl)
+│   ├── eval_metric_logreg.py         # Evaluates Agent 3 across validation, test & signal-magnitude subsets
+│   └── app.py                        # Interactive Streamlit dashboard (live yfinance, Yahoo/Google News RSS, CSV uploads)
 ├── requirements.txt
 └── README.md
 ```
@@ -69,8 +74,8 @@ QUANTITATIVE-TRADING-SWARM/
    pip install -r requirements.txt
    ```
 2. **Prepare datasets & model weights:**
-   - Place the 20 stock CSVs inside `data/stocks/<TICKER>.csv` (`AAPL`, `MSFT`, `GOOGL`, `AMZN`, `NVDA`, `NFLX`, `INTC`, `CSCO`, `ORCL`, `IBM`, `JPM`, `BAC`, `V`, `GS`, `JNJ`, `PFE`, `WMT`, `KO`, `DIS`, `ADBE`).
-   - Place `cleaned_news.csv` and the dated stock news CSV inside `data/`.
+   - The 20 ticker OHLCV files (`data/stocks/<TICKER>.csv`) and the processed alignment CSVs (`cleaned_news.csv`, `matched_headlines.csv`, `daily_news_scores.csv`, `daily_stock_scores.csv`, `aligned_agent_outputs.csv`) are already included in `data/`.
+   - *(Optional — only required if re-running `src/step0_match_news.py` from scratch)* Download **`analyst_ratings_processed.csv`** from the [Daily Financial News for 6000+ Stocks](https://www.kaggle.com/datasets/miguelaenlle/massive-stock-news-analysis-db-for-nlpbacktests) Kaggle dataset and place it at `data/analyst_ratings_processed.csv`.
    - Download `model.safetensors` (255 MB) from Google Drive (`https://drive.google.com/file/d/16TCelOauewhTi5pqD2z8cYA-Uqa31Ozg/view?usp=sharing`) and place it at `models/agent2/model.safetensors`.
 
 ---
@@ -85,9 +90,12 @@ QUANTITATIVE-TRADING-SWARM/
   ```
 - **Agent 3 (Dataset Alignment, Combiner Training & Evaluation):**
   ```bash
+  # Optional if data/aligned_agent_outputs.csv is already present:
   PYTHONPATH=src python src/step0_match_news.py
   PYTHONPATH=src python src/step1_score_news.py
   PYTHONPATH=src python src/step2_score_stocks.py
+
+  # Train and evaluate Agent 3:
   PYTHONPATH=src python src/step3_train_agent3.py
   PYTHONPATH=src python src/eval_metric_logreg.py
   ```
